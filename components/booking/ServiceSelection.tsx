@@ -53,7 +53,7 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
     filterServices();
   }, [services, searchTerm, selectedCategory, selectedPriceRange, selectedDuration]);
 
-  const fetchServices = async () => {
+  /*const fetchServices = async () => {
     try {
       const response = await fetch('/api/v1/services');
       const result = await response.json();
@@ -66,7 +66,56 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }; */
+
+  // Correction
+  const fetchServices = async () => {
+  try {
+    console.log('Tentative de récupération des services...');
+    
+    const response = await fetch('/api/v1/services');
+    
+    console.log('Status de la réponse:', response.status);
+    console.log('Headers:', response.headers.get('content-type'));
+    
+    // Vérifier si la réponse est OK
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    // Vérifier le content-type
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      // Lire le contenu pour debug
+      const textContent = await response.text();
+      console.error('Contenu de la réponse (non-JSON):', textContent);
+      throw new Error(`Response is not JSON. Content-Type: ${contentType}`);
+    }
+    
+    // Parser le JSON
+    const result = await response.json();
+    console.log('Données reçues:', result);
+    
+    if (result.success && result.data && result.data.services) {
+      setServices(result.data.services);
+    } else {
+      console.error('Structure de données inattendue:', result);
+      // Fallback avec des données mockées si nécessaire
+      setServices([]);
+    }
+    
+  } catch (error) {
+    console.error('Erreur lors du chargement des services:', error);
+    
+    // Optionnel: utiliser des données mockées en cas d'erreur
+    setServices([]);
+    
+    // Vous pouvez aussi afficher une notification d'erreur à l'utilisateur
+    // showErrorNotification('Impossible de charger les services');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const filterServices = () => {
     let filtered = [...services];
