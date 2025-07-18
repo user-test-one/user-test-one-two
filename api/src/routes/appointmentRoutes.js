@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   createAppointment,
+  getSuggestedSlots,
   getAppointments,
   getAppointment,
   confirmAppointment,
@@ -8,6 +9,7 @@ const {
   rescheduleAppointment,
   getAvailableSlots,
   getTodayAppointments,
+  sendReminders,
   getAppointmentStats
 } = require('../controllers/appointmentController');
 
@@ -21,6 +23,7 @@ const router = express.Router();
 // Schémas de validation pour les rendez-vous
 const appointmentSchemas = {
   create: Joi.object({
+    serviceId: Joi.string().pattern(/^[0-9a-fA-F]{24}$/).required(),
     client: Joi.object({
       firstName: Joi.string().trim().min(2).max(50).required(),
       lastName: Joi.string().trim().min(2).max(50).required(),
@@ -31,15 +34,43 @@ const appointmentSchemas = {
         website: Joi.string().uri(),
         size: Joi.string().valid('startup', 'small', 'medium', 'large', 'enterprise')
       }),
-      timezone: Joi.string().default('Europe/Paris')
+      timezone: Joi.string().default('Europe/Paris'),
+      additionalInfo: Joi.object({
+        budget: Joi.object({
+          range: Joi.string(),
+          currency: Joi.string().default('EUR'),
+          isFlexible: Joi.boolean().default(false)
+        }),
+        timeline: Joi.string(),
+        projectDescription: Joi.string().max(2000),
+        technicalRequirements: Joi.array().items(Joi.string()),
+        teamSize: Joi.number().integer().min(1),
+        currentSolution: Joi.string().max(500),
+        specificNeeds: Joi.string().max(1000)
+      }),
+      location: Joi.object({
+        address: Joi.string().max(200),
+        city: Joi.string().max(100),
+        postalCode: Joi.string().max(10),
+        country: Joi.string().max(100),
+        coordinates: Joi.object({
+          latitude: Joi.number(),
+          longitude: Joi.number()
+        })
+      }),
+      preferences: Joi.object({
+        communicationMethod: Joi.string().valid('email', 'phone', 'sms', 'whatsapp').default('email'),
+        language: Joi.string().default('fr'),
+        timezone: Joi.string().default('Europe/Paris')
+      })
     }).required(),
 
     appointment: Joi.object({
       title: Joi.string().trim().min(5).max(100).required(),
       description: Joi.string().trim().max(1000),
       type: Joi.string().valid('consultation', 'project-discussion', 'demo', 'support', 'follow-up', 'other').required(),
-      duration: Joi.number().integer().min(15).max(240).required(),
       startTime: Joi.date().greater('now').required(),
+      selectedSlotType: Joi.string().valid('specific', 'first-available', 'morning', 'afternoon', 'evening').default('specific'),
       location: Joi.object({
         type: Joi.string().valid('online', 'office', 'client-office', 'phone', 'other').default('online'),
         details: Joi.string().trim().max(200),
@@ -59,7 +90,24 @@ const appointmentSchemas = {
       technologies: Joi.array().items(Joi.string().trim())
     }),
 
-    gdprConsent: Joi.boolean().valid(true).required()
+    consents: Joi.object({
+      gdpr: Joi.object({
+        accepted: Joi.boolean().valid(true).required()
+      }).required(),
+      marketing: Joi.object({
+        accepted: Joi.boolean().default(false)
+      }),
+      dataRetention: Joi.object({
+        accepted: Joi.boolean().default(false),
+        retentionPeriod: Joi.number().integer().min(12).max(120).default(36)
+      })
+    }).required(),
+
+    analytics: Joi.object({
+      conversionTime: Joi.number().integer().min(0),
+      pageViews: Joi.number().integer().min(1),
+      formCompletionTime: Joi.number().integer().min(1)
+    })
   }),
 
   confirm: Joi.object({
@@ -80,6 +128,7 @@ const appointmentSchemas = {
 // Routes publiques
 router.post('/', publicLimiter, validate(appointmentSchemas.create), createAppointment);
 router.get('/available-slots', publicLimiter, getAvailableSlots);
+router.get('/suggested-slots/:serviceId', publicLimiter, getSuggestedSlots);
 router.post('/:id/confirm', publicLimiter, validate(commonSchemas.mongoId, 'params'), validate(appointmentSchemas.confirm), confirmAppointment);
 router.post('/:id/cancel', publicLimiter, validate(commonSchemas.mongoId, 'params'), validate(appointmentSchemas.cancel), cancelAppointment);
 
@@ -90,6 +139,7 @@ router.use(authorize('admin'));
 router.get('/', getAppointments);
 router.get('/today', getTodayAppointments);
 router.get('/stats', getAppointmentStats);
+router.post('/send-reminders', sendReminders);
 router.get('/:id', validate(commonSchemas.mongoId, 'params'), getAppointment);
 router.put('/:id/reschedule', validate(commonSchemas.mongoId, 'params'), validate(appointmentSchemas.reschedule), rescheduleAppointment);
 
