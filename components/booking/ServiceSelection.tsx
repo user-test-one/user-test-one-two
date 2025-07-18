@@ -116,7 +116,8 @@ const ServiceSelection: React.FC<ServiceSelectionProps> = ({
     setIsLoading(false);
   }
 };
-
+// --------------------------------------------------- END FECTHSERVICE
+  
   const filterServices = () => {
     let filtered = [...services];
 
