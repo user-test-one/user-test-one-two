@@ -182,6 +182,13 @@ const Contact = () => {
                     <span className="text-sm text-gray-400">Statut actuel</span>
                   </div>
                   <p className="text-green-400 font-medium">Disponible pour nouveaux projets</p>
+                  <a 
+                    href="/booking"
+                    className="inline-flex items-center space-x-2 mt-3 px-4 py-2 bg-[#00F5FF]/20 text-[#00F5FF] rounded-lg hover:bg-[#00F5FF]/30 transition-colors text-sm"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span>Réserver un créneau</span>
+                  </a>
                 </div>
               </div>
 
@@ -351,10 +358,10 @@ const Contact = () => {
                 <p className="text-gray-400 mb-6">
                   Préférez-vous discuter de vive voix ? Réservez un créneau de 30 minutes gratuit pour échanger sur votre projet.
                 </p>
-                <button className="btn-primary px-6 py-3 rounded-lg text-white font-medium flex items-center space-x-2">
+                <a href="/booking" className="btn-primary px-6 py-3 rounded-lg text-white font-medium flex items-center space-x-2">
                   <Calendar className="w-5 h-5" />
                   <span>Réserver un créneau</span>
-                </button>
+                </a>
               </div>
             </div>
           </div>

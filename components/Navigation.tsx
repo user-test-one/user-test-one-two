@@ -17,6 +17,7 @@ const Navigation = () => {
     { id: 'projects', label: 'Projets' },
     { id: 'blog', label: 'Blog' },
     { id: 'contact', label: 'Contact' },
+    { id: 'booking', label: 'RDV', href: '/booking' },
   ];
 
   const socialLinks = [
@@ -142,7 +143,7 @@ const Navigation = () => {
                 {navItems.map((item) => (
                   <button
                     key={item.id}
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => item.href ? window.location.href = item.href : scrollToSection(item.id)}
                     className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 group ${
                       activeSection === item.id 
                         ? 'text-white bg-gradient-to-r from-[#00F5FF] to-[#9D4EDD] shadow-lg' 
@@ -222,7 +223,7 @@ const Navigation = () => {
                 {navItems.map((item, index) => (
                   <button
                     key={item.id}
-                    onClick={() => scrollToSection(item.id)}
+                    onClick={() => item.href ? window.location.href = item.href : scrollToSection(item.id)}
                     className={`w-full text-left py-3 px-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${
                       activeSection === item.id 
                         ? 'text-white bg-gradient-to-r from-[#00F5FF] to-[#9D4EDD]' 
